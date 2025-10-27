@@ -10,7 +10,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform groundCheck;
 
 
-    private float moveSpeed=4f;
+    public float moveSpeed=4f;
     private float jumpSpeed=8f;
     private float moveInputX;
     private bool isFacingRight=true;

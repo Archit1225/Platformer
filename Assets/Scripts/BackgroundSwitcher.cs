@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class BackgroundSwitcher : MonoBehaviour
 {
-    public bool isUnderground=false;
+    public bool isUnderground = false;
     public Transform aboveBg;
     public Transform underBg;
     public PolygonCollider2D M1;
     public PolygonCollider2D M2;
     public Transform player;
     public CinemachineConfiner2D cineCam;
-    
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -27,7 +27,7 @@ public class BackgroundSwitcher : MonoBehaviour
         else
         {
             isUnderground = false;
-            cineCam.BoundingShape2D = M1 ;
+            cineCam.BoundingShape2D = M1;
         }
         UpdateBackground();
     }
