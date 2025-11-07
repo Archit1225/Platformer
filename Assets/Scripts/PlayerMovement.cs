@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,22 +12,41 @@ public class PlayerMovement : MonoBehaviour
     public Transform groundCheck;
 
 
-    public float moveSpeed=4f;
-    private float jumpSpeed=8f;
+    public float moveSpeed = 4f;
+    public float fallGravity = 2f;
+    public float normalGravity = 1.5f;
+    public float jumpGravity = 1.5f;
+
+
+    private float jumpSpeed = 8f;
     private float moveInputX;
-    private bool isFacingRight=true;
+    private bool isFacingRight = true;
+
+
+    private bool isDashing = false;
+    public float dashCooldown = 10f;
+    public float dashSpeed = 10f;
+    private float dashCooldownTimer;
+
+    private readonly WaitForSeconds waitForSeconds = new WaitForSeconds(0.5f);
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        dashCooldownTimer = 0f;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(moveInputX * moveSpeed, rb.linearVelocityY);
+
+        HandleGravity();
+        if (!isDashing)
+        {
+            rb.linearVelocity = new Vector2(moveInputX * moveSpeed, rb.linearVelocityY);
+        }
         if (isFacingRight && moveInputX < 0f)
         {
             Flip();
@@ -34,11 +55,33 @@ public class PlayerMovement : MonoBehaviour
         {
             Flip();
         }
-
     }
+
+    public IEnumerator Dash()
+    {
+        rb.linearVelocityX = dashSpeed*(transform.localScale.x)/Math.Abs(transform.localScale.x);
+        rb.gravityScale = 0f;
+        isDashing = true;
+        Debug.Log("Dashing");
+        yield return waitForSeconds;
+        rb.gravityScale = normalGravity;
+        isDashing = false;
+    }
+
     private void Update()
     {
         HandleAnimations();
+
+        if (Keyboard.current.shiftKey.wasPressedThisFrame && dashCooldownTimer == 0)
+        {
+            StartCoroutine(Dash());
+        }
+        else if (dashCooldownTimer > 0) {
+            dashCooldownTimer -= Time.deltaTime;
+        }
+        else if (dashCooldownTimer < 0) {
+            dashCooldownTimer =0;
+        }
     }
 
     public void Move(InputAction.CallbackContext context)
@@ -47,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
     }
     public void Jump(InputAction.CallbackContext context)
     {
-        if (isGrounded() && context.performed)
+        if (isGrounded() && context.performed && !isDashing)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpSpeed);
         }
@@ -61,7 +104,23 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool("isJumping", rb.linearVelocityY > 0.1f);
         animator.SetBool("isGrounded", isGrounded());
 
-        animator.SetFloat("yVelocity", rb.linearVelocityY); 
+        animator.SetFloat("yVelocity", rb.linearVelocityY);
+    }
+
+    private void HandleGravity()
+    {
+        if (rb.linearVelocityY < 0f)
+        {
+            rb.gravityScale = fallGravity;
+        }
+        else if (rb.linearVelocityY > 0f)
+        {
+            rb.gravityScale = jumpGravity;
+        }
+        else
+        {
+            rb.gravityScale = normalGravity;
+        }
     }
 
     private bool isGrounded()
@@ -76,22 +135,4 @@ public class PlayerMovement : MonoBehaviour
         localScale.x *= -1f;
         transform.localScale = localScale;
     }
-    //private void ChangeState(PlayerState newState)
-    //{
-    //    if (playerState == PlayerState.Idle)
-    //        animator.SetBool("IsIdle", false);
-    //    else if (playerState == PlayerState.Walking)
-    //        animator.SetBool("IsWalking", false);
-
-    //    playerState = newState;
-
-    //    if (playerState == PlayerState.Idle)
-    //        animator.SetBool("IsIdle", true);
-    //    else if (playerState == PlayerState.Walking)
-    //        animator.SetBool("IsWalking", true);
-    //}
 }
-//public enum PlayerState
-//{
-//    Idle, Walking, Jumping, Landing
-//}

@@ -14,7 +14,7 @@ public class BackgroundController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         //stores how much distance bg must move relative to camera
         float distance = cam.transform.position.x * parallaxEffect;
